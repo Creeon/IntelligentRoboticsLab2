@@ -1,0 +1,6 @@
+.venv/
+build/
+install/
+log/
+calibration_data/**/*.png
+calibration_data/**/*.gz

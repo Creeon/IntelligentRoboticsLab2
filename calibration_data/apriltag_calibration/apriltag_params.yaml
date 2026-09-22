@@ -1,0 +1,47 @@
+apriltag_left: # node name
+  ros__parameters:
+    # setup (defaults)
+    image_transport: raw # image format: "raw" or "compressed"
+    family: 36h11 # tag family name: 16h5, 25h9, 36h11
+    size: 1.0 # default tag edge size in meter
+    profile: false # print profiling information to stdout
+    # tuning of detection (defaults)
+    max_hamming: 0
+    detector:
+      threads: 1
+      decimate: 2.0
+      blur: 0.0
+      refine: true
+      sharpening: 0.25
+      debug: false
+    pose_estimation_method: "pnp"
+    # (optional) list of tags
+    # If defined, 'frames' and 'sizes' must have the same length as 'ids'.
+    tag:
+      ids: [1] # (MAKE SURE TO USE THE PROPER ID)
+      frames: ["left_frame"] # frame names
+      sizes: [.144]
+
+apriltag_right: # node name
+  ros__parameters:
+    # setup (defaults)
+    image_transport: raw # image format: "raw" or "compressed"
+    family: 36h11 # tag family name: 16h5, 25h9, 36h11
+    size: 1.0 # default tag edge size in meter
+    profile: false # print profiling information to stdout
+    # tuning of detection (defaults)
+    max_hamming: 0
+    detector:
+      threads: 1
+      decimate: 2.0
+      blur: 0.0
+      refine: true
+      sharpening: 0.25
+      debug: false
+    pose_estimation_method: "pnp"
+    # (optional) list of tags
+    # If defined, 'frames' and 'sizes' must have the same length as 'ids'.
+    tag:
+      ids: [1] # (MAKE SURE TO USE THE PROPER ID)
+      frames: ["right_frame"] # frame names
+      sizes: [.144]

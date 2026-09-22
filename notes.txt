@@ -1,0 +1,40 @@
+# Left camera
+ros2 run v4l2_camera v4l2_camera_node \
+  --ros-args \
+  -p video_device:=/dev/video0 \
+  -p image_size:="[640,480]" \
+  -p pixel_format:="YUYV" \
+  -p frame_rate:=30.0 \
+  -p camera_info_url:="file:///home/anc5gg/dev/lab2_ws/calibration_data/stereo_calibration_data/left.yaml" \
+  -r image_raw:=/stereo/left/image_raw \
+  -r camera_info:=/stereo/left/camera_info
+
+ros2 run image_proc image_proc \
+  --ros-args \
+  -r image:=/stereo/left/image_raw \
+  -r camera_info:=/stereo/left/camera_info \
+  -r image_rect:=/stereo/left/image_rect
+
+# Right camera
+ros2 run v4l2_camera v4l2_camera_node \
+  --ros-args \
+  -p video_device:=/dev/video2 \
+  -p image_size:="[640,480]" \
+  -p pixel_format:="YUYV" \
+  -p frame_rate:=30.0 \
+  -p camera_info_url:="file:///home/anc5gg/dev/lab2_ws/calibration_data/stereo_calibration_data/right.yaml" \
+  -r image_raw:=/stereo/right/image_raw \
+  -r camera_info:=/stereo/right/camera_info
+
+ros2 run image_proc image_proc \
+  --ros-args \
+  -r image:=/stereo/right/image_raw \
+  -r camera_info:=/stereo/right/camera_info \
+  -r image_rect:=/stereo/right/image_rect
+
+# April Tag
+ros2 run apriltag_ros apriltag_node \
+  --ros-args \
+  --params-file /home/anc5gg/dev/lab2_ws/calibration_data/apriltag_calibration/apriltag_params.yaml \
+  -r image_rect:=/stereo/left/image_rect \
+  -r camera_info:=/stereo/left/camera_info
