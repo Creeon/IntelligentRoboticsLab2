@@ -22,6 +22,12 @@ class CameraIntrinsics:
         self.fy = fy
         self.cx = cx
         self.cy = cy
+        
+        self.intrinsic_matrix = np.array([
+            [fx, 0, cx],
+            [0, fy, cy],
+            [0, 0, 1]
+        ])
 
 class BlockDetector(Node):
     def __init__(self):
@@ -190,8 +196,6 @@ class BlockDetector(Node):
         
         lt = np.array([left_t.x, left_t.y, left_t.z])
         rt = np.array([right_t.x, right_t.y, right_t.z])
-        
-        
 
         left_rotation_matrix = quaternion_matrix([ # convert quaternion to the 4x4 matrix
             left_q.x,
@@ -240,34 +244,73 @@ class BlockDetector(Node):
         return x, y, z
     
     def find_corresponding_points(self, points1, points2):
-        # this assumes V is the relative same on both.
-        MAX_V_DIFF = 20
-        num_points = min(len(points1), len(points2))
-        if num_points == 0:
-            return []
+        MAX_DISTANCE = 25 # pixels
+        left_t = self.left_transform.transform.translation
+        right_t = self.right_transform.transform.translation
+        left_pos = np.array([left_t.x, left_t.y, left_t.z])
+        right_pos = np.array([right_t.x, right_t.y, right_t.z])
         
-        remaining1 = points1.copy()
-        remaining2 = points2.copy()
+        left_q = self.left_transform.transform.rotation # Quaternion for rotation
+        right_q = self.right_transform.transform.rotation # Quaternion for rotation
+        left_rotation_matrix = quaternion_matrix([ # convert quaternion to the 4x4 matrix
+            left_q.x,
+            left_q.y,
+            left_q.z,
+            left_q.w
+        ])[0:3, 0:3]
+        right_rotation_matrix = quaternion_matrix([ # convert quaternion to the 4x4 matrix
+            right_q.x,
+            right_q.y,
+            right_q.z,
+            right_q.w
+        ])[0:3, 0:3]
         
-        points = []
-        for _ in range(num_points):
-            best_pair = []
-            best_diff = float('inf')
-            for pair1 in remaining1:
-                for pair2 in remaining2:
-                    diff = abs(pair1[1] - pair2[1])
-                    if diff < best_diff:
-                        best_pair = [pair1, pair2]
-                        best_diff = diff
-            if best_diff > MAX_V_DIFF:
-                break
-            pair1, pair2 = best_pair
-            remaining1.remove(pair1)
-            remaining2.remove(pair2)
-            points.append([pair1, pair2])
+        T = left_rotation_matrix.T @ (right_pos - left_pos)
+        R = left_rotation_matrix.T @ right_rotation_matrix
         
-        return points
+        T_hat = np.array([
+            [0, -T[2], T[1]],
+            [T[2], 0, -T[0]],
+            [-T[1], T[0], 0]
+        ])
+        
+        F = (
+            np.linalg.inv(self.left_intrinsics.intrinsic_matrix).T
+            @ T_hat
+            @ R
+            @ np.linalg.inv(self.right_intrinsics.intrinsic_matrix)
+        )
+        
+        pairs = []
+        
+        while len(points1) > 0 and len(points2) > 0:
             
+            best_distance = None
+            best_pair = None
+            
+            for right_point in points2:
+                r_u, r_v = right_point
+                r_p = np.array([r_u, r_v, 1.0])
+                line = F @ r_p
+                a, b, c = line
+                
+                for left_point in points1:
+                    l_u, l_v = left_point
+                    
+                    distance = abs(a * l_u + b * l_v + c) / np.sqrt(a**2 + b**2)
+                    if distance <= MAX_DISTANCE and (best_distance is None or distance < best_distance):
+                        best_distance = distance
+                        best_pair = (left_point, right_point)
+            
+            if best_pair is None : return pairs
+            pairs.append(best_pair)
+            points1.remove(best_pair[0])
+            points2.remove(best_pair[1])
+        
+        return pairs
+                    
+                    
+        
     def left_img_cb(self, msg : Image):
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
 
@@ -278,7 +321,7 @@ class BlockDetector(Node):
 
         self.right_contours = self.get_contours(image)
         
-        
+    
         
 def main(args=None):
     rclpy.init(args=args)
