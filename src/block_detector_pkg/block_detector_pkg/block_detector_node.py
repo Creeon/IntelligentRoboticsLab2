@@ -60,7 +60,7 @@ class BlockDetector(Node):
             318.783033,
             236.077347
         )
-        
+        self.transforms_printed = False
         self.timer = self.create_timer(1.0 / FREQ, self.timer_cb)
         
     def timer_cb(self):
@@ -82,9 +82,27 @@ class BlockDetector(Node):
         
         # don't do anything if the left or right camera images have not been processed yet, or if the april tag has not been seen yet.
         if self.left_contours is None or self.right_contours is None or self.left_transform is None or self.right_transform is None:
-            self.get_logger().info("Haven't recieved both left and right images yet.")
+            self.get_logger().info("Haven't recieved one of (left image, right image, left transform, right transform) yet.")
             return
-        
+        if not self.transforms_printed:
+            self.transforms_printed = True
+            left_t = self.left_transform.transform.translation
+            left_r = self.left_transform.transform.rotation
+
+            self.get_logger().info(
+                f"Left transform:\n"
+                f"  Translation: x={left_t.x:.6f}, y={left_t.y:.6f}, z={left_t.z:.6f}\n"
+                f"  Rotation: x={left_r.x:.6f}, y={left_r.y:.6f}, z={left_r.z:.6f}, w={left_r.w:.6f}"
+            )
+
+            right_t = self.right_transform.transform.translation
+            right_r = self.right_transform.transform.rotation
+
+            self.get_logger().info(
+                f"Right transform:\n"
+                f"  Translation: x={right_t.x:.6f}, y={right_t.y:.6f}, z={right_t.z:.6f}\n"
+                f"  Rotation: x={right_r.x:.6f}, y={right_r.y:.6f}, z={right_r.z:.6f}, w={right_r.w:.6f}"
+            )
         # Log the number of contours
         self.get_logger().info(
             f"Left contours: {len(self.left_contours)}, "
@@ -111,7 +129,7 @@ class BlockDetector(Node):
             
             self.get_logger().info(
                 f"ID: {id}"
-                f"X:  {x:.3f}, Y:  {y:.3f}, Z:  {z:.3f}"
+                f"X:  {x:.3f}, Y:  {y:.3f}, Z:  {z:.3f}  L: ({int(u1)}, {int(v1)}) R:({int(u2)}, {int(v2)})"
                 # f"TX: {tx:.2f}, TY: {ty:.2f}, TZ: {tz:.2f}\n"
             )
 
