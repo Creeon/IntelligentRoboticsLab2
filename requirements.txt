@@ -1,0 +1,10 @@
+dynamixel-easy-sdk==4.0.5
+dynamixel-sdk==4.0.5
+dynamixel-sdk-custom-interfaces==4.0.5
+-e git+ssh://git@github.com/Creeon/Intelligent-Robotics-Lab1.git@78fba5d6768f555352f0f3bfdc224f22ed705280#egg=movement_pkg&subdirectory=turtlebot3_ws/build/movement_pkg
+numpy==2.2.6
+opencv-python==5.0.0.93
+pillow==12.3.0
+-e git+ssh://git@github.com/Creeon/Intelligent-Robotics-Lab1.git@78fba5d6768f555352f0f3bfdc224f22ed705280#egg=turtlebot3_example&subdirectory=turtlebot3_ws/build/turtlebot3_example
+turtlebot3-msgs==2.4.0
+-e git+ssh://git@github.com/Creeon/Intelligent-Robotics-Lab1.git@78fba5d6768f555352f0f3bfdc224f22ed705280#egg=turtlebot3_teleop&subdirectory=turtlebot3_ws/build/turtlebot3_teleop
